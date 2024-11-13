@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciar Alunos</title>
+</head>
+<body>
+  <h1>Lista de Alunos</h1>
+  
+  <!-- Formulário para adicionar um novo aluno -->
+  <form id="aluno-form">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required />
+    
+    <label for="idade">Idade:</label>
+    <input type="number" id="idade" name="idade" required />
+    
+    <button type="submit">Adicionar Aluno</button>
+  </form>
+
+  <div id="alunos-container">
+    <!-- Alunos serão exibidos aqui -->
+  </div>
+
+  <script>
+    async function carregarAlunos() {
+      const resposta = await fetch("http://localhost:3031/mostrar");
+      const alunos = await resposta.json();
+
+      const container = document.getElementById("alunos-container");
+      container.innerHTML = "";
+
+      alunos.forEach((aluno) => {
+        const alunoDiv = document.createElement("div");
+
+        alunoDiv.innerHTML = `
+          <p>Nome: ${aluno.nome}, Idade: ${aluno.idade}</p>
+          <button onclick="deletarAluno(${aluno.id})">Deletar</button>
+          <button onclick="editarAluno(${aluno.id})">Editar</button>
+        `;
+        container.appendChild(alunoDiv);
+      });
+    }
+
+    async function adicionarAluno(event) {
+      event.preventDefault();
+
+      const nome = document.getElementById("nome").value;
+      const idade = document.getElementById("idade").value;
+
+      const resposta = await fetch(`http://localhost:3031/salvar/${nome}/${idade}`);
+
+      if (resposta.ok) {
+        alert("Aluno criado com sucesso!");
+        carregarAlunos(); // Atualiza a lista de alunos após adicionar
+        document.getElementById("aluno-form").reset(); // Limpa o formulário
+      } else {
+        alert("Erro ao criar aluno.");
+      }
+    }
+
+    async function deletarAluno(id) {
+      const resposta = await fetch(`http://localhost:3031/deletar/${id}`);
+
+      if (resposta.ok) {
+        alert("Aluno deletado com sucesso!");
+        carregarAlunos(); // Atualiza a lista de alunos após deletar
+      } else {
+        alert("Erro ao deletar aluno.");
+      }
+    }
+
+    function editarAluno(id) {
+      window.location.href = `editar.html?id=${id}`;
+    }
+
+    // Carrega os alunos ao abrir a página
+    window.onload = carregarAlunos;
+
+    // Adiciona evento para o formulário de adicionar aluno
+    document.getElementById("aluno-form").addEventListener("submit", adicionarAluno);
+  </script>
+</body>
+</html>
